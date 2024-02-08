@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"math/rand"
 	"strconv"
 	"time"
 
@@ -36,9 +35,16 @@ func NewService(ctx context.Context, log *zap.Logger, postg *pgx.Conn, q *db.Que
 		db:      db.New(postg)}
 }
 func (r *Repository) CreateStudent(ctx context.Context, input models.InputStudent) (out models.OutStudent, err error) {
-	//fmt.Println(input)
-	studentId := input.LastName + string(rune(rand.Intn(100)))
-	//r.db.CreateStudent(context.Background())
+
+	studentId, err := r.db.GetIndexes(context.Background())
+	if err != nil {
+
+		studentId, err = r.db.CreateIndex(ctx, 1)
+		if err != nil {
+			r.Logger.Error("CreateIndex", zap.Error(err))
+			return out, errors.WithStack(err)
+		}
+	}
 
 	adrs := db.CreateAddressParams{
 		AddressID: studentId,
@@ -48,7 +54,7 @@ func (r *Repository) CreateStudent(ctx context.Context, input models.InputStuden
 		Phone:     input.Addresses.Phone,
 	}
 
-	adr, err := r.db.CreateAddress(ctx, adrs)
+	adr, err := r.db.CreateAddress(context.Background(), adrs)
 	if err != nil {
 		r.Logger.Error("CreateAddress", zap.Error(err))
 		return out, errors.WithStack(err)
@@ -68,7 +74,7 @@ func (r *Repository) CreateStudent(ctx context.Context, input models.InputStuden
 		Deleted:        pgtype.Bool{Bool: false, Valid: true},
 	}
 
-	stdnt, err := r.db.CreateStudent(r.Context, arg)
+	stdnt, err := r.db.CreateStudent(context.Background(), arg)
 	if err != nil {
 		r.Logger.Error("CreateStudent", zap.Error(err))
 		return out, errors.WithStack(err)
@@ -77,6 +83,14 @@ func (r *Repository) CreateStudent(ctx context.Context, input models.InputStuden
 	impl := generated.ConverterImpl{}
 	var outStudent = impl.Convert(stdnt)
 
+	err = r.db.UpdateIndex(context.Background(), db.UpdateIndexParams{
+		IndexID:   studentId,
+		IndexID_2: studentId + 1,
+	})
+	if err != nil {
+		r.Logger.Error("UpdateIndex", zap.Error(err))
+		return out, errors.WithStack(err)
+	}
 	return outStudent, nil
 }
 

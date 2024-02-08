@@ -26,6 +26,15 @@ func (c *ConverterImpl) Convert(source sqlc.Student) models.OutStudent {
 	modelsOutStudent.Deleted = models.PgTypeToBool(source.Deleted)
 	return modelsOutStudent
 }
+func (c *ConverterImpl) ConvertAddress(source sqlc.Address) models.OutAddress {
+	var modelsOutAddress models.OutAddress
+	modelsOutAddress.AddressID = source.AddressID
+	modelsOutAddress.Street = models.PgTypeToText(source.Street)
+	modelsOutAddress.City = models.PgTypeToText(source.City)
+	modelsOutAddress.Planet = models.PgTypeToText(source.Planet)
+	modelsOutAddress.Phone = source.Phone
+	return modelsOutAddress
+}
 func (c *ConverterImpl) ConvertItems(source []sqlc.Student) []models.OutStudent {
 	var modelsOutStudentList []models.OutStudent
 	if source != nil {

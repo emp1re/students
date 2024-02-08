@@ -19,7 +19,7 @@ RETURNING address_id, street, city, planet, phone
 `
 
 type CreateAddressParams struct {
-	AddressID string      `json:"address_id"`
+	AddressID int32       `json:"address_id"`
 	Street    pgtype.Text `json:"street"`
 	City      pgtype.Text `json:"city"`
 	Planet    pgtype.Text `json:"planet"`
@@ -45,6 +45,20 @@ func (q *Queries) CreateAddress(ctx context.Context, arg CreateAddressParams) (A
 	return i, err
 }
 
+const createIndex = `-- name: CreateIndex :one
+INSERT INTO index (
+        index_id)
+VALUES ($1)
+RETURNING index_id
+`
+
+func (q *Queries) CreateIndex(ctx context.Context, indexID int32) (int32, error) {
+	row := q.db.QueryRow(ctx, createIndex, indexID)
+	var index_id int32
+	err := row.Scan(&index_id)
+	return index_id, err
+}
+
 const createStudent = `-- name: CreateStudent :one
 INSERT INTO students (
    student_id,first_name, last_name, age, email, gender, favourite_color, student_address, created_at, updated_at, deleted)
@@ -53,14 +67,14 @@ RETURNING id, student_id, first_name, last_name, age, email, gender, favourite_c
 `
 
 type CreateStudentParams struct {
-	StudentID      string             `json:"student_id"`
+	StudentID      int32              `json:"student_id"`
 	FirstName      string             `json:"first_name"`
 	LastName       string             `json:"last_name"`
 	Age            pgtype.Int8        `json:"age"`
 	Email          string             `json:"email"`
 	Gender         pgtype.Text        `json:"gender"`
 	FavouriteColor pgtype.Text        `json:"favourite_color"`
-	StudentAddress string             `json:"student_address"`
+	StudentAddress int32              `json:"student_address"`
 	CreatedAt      pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
 	Deleted        pgtype.Bool        `json:"deleted"`
@@ -107,6 +121,18 @@ WHERE id = $1 AND deleted = false
 func (q *Queries) DeleteStudent(ctx context.Context, id int32) error {
 	_, err := q.db.Exec(ctx, deleteStudent, id)
 	return err
+}
+
+const getIndexes = `-- name: GetIndexes :one
+SELECT index_id FROM index
+ORDER BY index_id
+`
+
+func (q *Queries) GetIndexes(ctx context.Context) (int32, error) {
+	row := q.db.QueryRow(ctx, getIndexes)
+	var index_id int32
+	err := row.Scan(&index_id)
+	return index_id, err
 }
 
 const getStudent = `-- name: GetStudent :one
@@ -177,6 +203,22 @@ func (q *Queries) ListStudents(ctx context.Context, arg ListStudentsParams) ([]S
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateIndex = `-- name: UpdateIndex :exec
+UPDATE index
+SET index_id = $2
+WHERE index_id = $1
+`
+
+type UpdateIndexParams struct {
+	IndexID   int32 `json:"index_id"`
+	IndexID_2 int32 `json:"index_id_2"`
+}
+
+func (q *Queries) UpdateIndex(ctx context.Context, arg UpdateIndexParams) error {
+	_, err := q.db.Exec(ctx, updateIndex, arg.IndexID, arg.IndexID_2)
+	return err
 }
 
 const updateStudent = `-- name: UpdateStudent :exec

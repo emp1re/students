@@ -15,6 +15,7 @@ import (
 type Converter interface {
 	ConvertItems(source []db.Student) []OutStudent
 	Convert(source db.Student) OutStudent
+	ConvertAddress(source db.Address) OutAddress
 }
 
 func PgTypeToInt8(i pgtype.Int8) int64 {
@@ -49,7 +50,7 @@ func PgTypeToText(i pgtype.Text) string {
 }
 
 type OutAddress struct {
-	AddressID int64  `json:"address_id"`
+	AddressID int32  `json:"address_id"`
 	Street    string `json:"street"`
 	City      string `json:"city"`
 	Planet    string `json:"planet"`
@@ -57,14 +58,14 @@ type OutAddress struct {
 }
 type OutStudent struct {
 	ID             int32     `json:"id"`
-	StudentID      string    `json:"student_id"`
+	StudentID      int32     `json:"student_id"`
 	FirstName      string    `json:"first_name"`
 	LastName       string    `json:"last_name"`
 	Age            int64     `json:"age"`
 	Email          string    `json:"email"`
 	Gender         string    `json:"gender"`
 	FavouriteColor string    `json:"favourite_color"`
-	StudentAddress string    `json:"student_address"`
+	StudentAddress int32     `json:"student_address"`
 	CreatedAt      time.Time `json:"created_at"`
 	UpdatedAt      time.Time `json:"updated_at"`
 	Deleted        bool      `json:"deleted"`

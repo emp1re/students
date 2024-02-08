@@ -29,3 +29,17 @@ UPDATE students
 SET deleted = true
 WHERE id = $1 AND deleted = false;
 
+-- name: CreateIndex :one
+INSERT INTO index (
+        index_id)
+VALUES ($1)
+RETURNING *;
+
+-- name: GetIndexes :one
+SELECT * FROM index
+ORDER BY index_id;
+
+-- name: UpdateIndex :exec
+UPDATE index
+SET index_id = $2
+WHERE index_id = $1;
