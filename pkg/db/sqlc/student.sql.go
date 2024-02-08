@@ -11,21 +11,56 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const createAddress = `-- name: CreateAddress :one
+INSERT INTO address
+    (address_id, street, city, planet, phone)
+VALUES ($1, $2, $3, $4, $5)
+RETURNING address_id, street, city, planet, phone
+`
+
+type CreateAddressParams struct {
+	AddressID string      `json:"address_id"`
+	Street    pgtype.Text `json:"street"`
+	City      pgtype.Text `json:"city"`
+	Planet    pgtype.Text `json:"planet"`
+	Phone     string      `json:"phone"`
+}
+
+func (q *Queries) CreateAddress(ctx context.Context, arg CreateAddressParams) (Address, error) {
+	row := q.db.QueryRow(ctx, createAddress,
+		arg.AddressID,
+		arg.Street,
+		arg.City,
+		arg.Planet,
+		arg.Phone,
+	)
+	var i Address
+	err := row.Scan(
+		&i.AddressID,
+		&i.Street,
+		&i.City,
+		&i.Planet,
+		&i.Phone,
+	)
+	return i, err
+}
+
 const createStudent = `-- name: CreateStudent :one
 INSERT INTO students (
-   first_name, last_name, age, email, gender, favourite_color, addresses, created_at, updated_at, deleted)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-RETURNING id, first_name, last_name, age, email, gender, favourite_color, addresses, created_at, updated_at, deleted
+   student_id,first_name, last_name, age, email, gender, favourite_color, student_address, created_at, updated_at, deleted)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+RETURNING id, student_id, first_name, last_name, age, email, gender, favourite_color, student_address, created_at, updated_at, deleted
 `
 
 type CreateStudentParams struct {
+	StudentID      string             `json:"student_id"`
 	FirstName      string             `json:"first_name"`
 	LastName       string             `json:"last_name"`
 	Age            pgtype.Int8        `json:"age"`
 	Email          string             `json:"email"`
 	Gender         pgtype.Text        `json:"gender"`
 	FavouriteColor pgtype.Text        `json:"favourite_color"`
-	Addresses      pgtype.Text        `json:"addresses"`
+	StudentAddress string             `json:"student_address"`
 	CreatedAt      pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
 	Deleted        pgtype.Bool        `json:"deleted"`
@@ -33,13 +68,14 @@ type CreateStudentParams struct {
 
 func (q *Queries) CreateStudent(ctx context.Context, arg CreateStudentParams) (Student, error) {
 	row := q.db.QueryRow(ctx, createStudent,
+		arg.StudentID,
 		arg.FirstName,
 		arg.LastName,
 		arg.Age,
 		arg.Email,
 		arg.Gender,
 		arg.FavouriteColor,
-		arg.Addresses,
+		arg.StudentAddress,
 		arg.CreatedAt,
 		arg.UpdatedAt,
 		arg.Deleted,
@@ -47,13 +83,14 @@ func (q *Queries) CreateStudent(ctx context.Context, arg CreateStudentParams) (S
 	var i Student
 	err := row.Scan(
 		&i.ID,
+		&i.StudentID,
 		&i.FirstName,
 		&i.LastName,
 		&i.Age,
 		&i.Email,
 		&i.Gender,
 		&i.FavouriteColor,
-		&i.Addresses,
+		&i.StudentAddress,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Deleted,
@@ -73,7 +110,7 @@ func (q *Queries) DeleteStudent(ctx context.Context, id int32) error {
 }
 
 const getStudent = `-- name: GetStudent :one
-SELECT id, first_name, last_name, age, email, gender, favourite_color, addresses, created_at, updated_at, deleted FROM students
+SELECT id, student_id, first_name, last_name, age, email, gender, favourite_color, student_address, created_at, updated_at, deleted FROM students
 WHERE id = $1 AND deleted = false
 `
 
@@ -82,13 +119,14 @@ func (q *Queries) GetStudent(ctx context.Context, id int32) (Student, error) {
 	var i Student
 	err := row.Scan(
 		&i.ID,
+		&i.StudentID,
 		&i.FirstName,
 		&i.LastName,
 		&i.Age,
 		&i.Email,
 		&i.Gender,
 		&i.FavouriteColor,
-		&i.Addresses,
+		&i.StudentAddress,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Deleted,
@@ -97,10 +135,10 @@ func (q *Queries) GetStudent(ctx context.Context, id int32) (Student, error) {
 }
 
 const listStudents = `-- name: ListStudents :many
-SELECT id, first_name, last_name, age, email, gender, favourite_color, addresses, created_at, updated_at, deleted FROM students
-ORDER BY id AND deleted = false
-LIMIT $1
-OFFSET $2
+SELECT id, student_id, first_name, last_name, age, email, gender, favourite_color, student_address, created_at, updated_at, deleted FROM students
+WHERE deleted = false
+ORDER BY id
+LIMIT $1 OFFSET $2
 `
 
 type ListStudentsParams struct {
@@ -119,13 +157,14 @@ func (q *Queries) ListStudents(ctx context.Context, arg ListStudentsParams) ([]S
 		var i Student
 		if err := rows.Scan(
 			&i.ID,
+			&i.StudentID,
 			&i.FirstName,
 			&i.LastName,
 			&i.Age,
 			&i.Email,
 			&i.Gender,
 			&i.FavouriteColor,
-			&i.Addresses,
+			&i.StudentAddress,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.Deleted,
@@ -142,7 +181,7 @@ func (q *Queries) ListStudents(ctx context.Context, arg ListStudentsParams) ([]S
 
 const updateStudent = `-- name: UpdateStudent :exec
 UPDATE students
-SET first_name = $2, last_name = $3, age = $4
+SET first_name = $2, last_name = $3, age = $4 , email = $5
 WHERE id = $1 AND deleted = false
 `
 
@@ -151,6 +190,7 @@ type UpdateStudentParams struct {
 	FirstName string      `json:"first_name"`
 	LastName  string      `json:"last_name"`
 	Age       pgtype.Int8 `json:"age"`
+	Email     string      `json:"email"`
 }
 
 func (q *Queries) UpdateStudent(ctx context.Context, arg UpdateStudentParams) error {
@@ -159,6 +199,7 @@ func (q *Queries) UpdateStudent(ctx context.Context, arg UpdateStudentParams) er
 		arg.FirstName,
 		arg.LastName,
 		arg.Age,
+		arg.Email,
 	)
 	return err
 }

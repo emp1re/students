@@ -9,22 +9,23 @@ import (
 )
 
 type Address struct {
-	ID     int32       `json:"id"`
-	Street pgtype.Text `json:"street"`
-	City   pgtype.Text `json:"city"`
-	Planet pgtype.Text `json:"planet"`
-	Phone  string      `json:"phone"`
+	AddressID string      `json:"address_id"`
+	Street    pgtype.Text `json:"street"`
+	City      pgtype.Text `json:"city"`
+	Planet    pgtype.Text `json:"planet"`
+	Phone     string      `json:"phone"`
 }
 
 type Student struct {
 	ID             int32              `json:"id"`
+	StudentID      string             `json:"student_id"`
 	FirstName      string             `json:"first_name"`
 	LastName       string             `json:"last_name"`
 	Age            pgtype.Int8        `json:"age"`
 	Email          string             `json:"email"`
 	Gender         pgtype.Text        `json:"gender"`
 	FavouriteColor pgtype.Text        `json:"favourite_color"`
-	Addresses      pgtype.Text        `json:"addresses"`
+	StudentAddress string             `json:"student_address"`
 	CreatedAt      pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
 	Deleted        pgtype.Bool        `json:"deleted"`

@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS students (
                                         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                                         deleted BOOLEAN DEFAULT FALSE
 );
-CREATE TABLE IF NOT EXISTS address (
+CREATE TABLE IF NOT EXISTS addresses (
                                         id SERIAL PRIMARY KEY,
                                         street TEXT ,
                                         city TEXT,
