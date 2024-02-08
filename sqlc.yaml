@@ -1,0 +1,28 @@
+#version: "2"
+#cloud:
+#  project: "<PROJECT_ID>"
+#sql:
+#  - schema: "postgresql/schema.sql"
+#    queries: "postgresql/query.sql"
+#    engine: "postgresql"
+#    gen:
+#      go:
+#        package: "authors"
+#        out: "postgresql"
+#    database:
+#      managed: true
+#    rules:
+#      - sqlc/db-prepare
+
+version: "1"
+packages:
+  - name: "db"
+    path: "./pkg/db/sqlc"
+    queries: "./pkg/db/query/"
+    schema: "./pkg/db/migrate/"
+    sql_package: "pgx/v5"
+    engine: "postgresql"
+    emit_json_tags: true
+    emit_prepared_queries: false
+    emit_interface: false
+    emit_exact_table_names: false

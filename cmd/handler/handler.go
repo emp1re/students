@@ -1,12 +1,13 @@
 package handler
 
 import (
+	"github.com/emp1re/students/pkg/models"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
 
 type SvcHandler interface {
-	// AddStudent(c *gin.Context, request *models.Student) (errCode int, err error)
+	AddStudent(request *models.Student) (errCode int, err error)
 }
 
 type Handler struct {

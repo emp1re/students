@@ -1,5 +1,5 @@
-##docker run --rm --name postgres -e POSTGRES_USER=vladik -e POSTGRES_PASSWORD=123456 -e POSTGRES_DB=students -p 5432:5432 -d postgres:latest
-FROM postgres:latest
+
+FROM postgres:16.1-alpine3.19
 
 # Set environment variables
 ENV POSTGRES_USER=vladik

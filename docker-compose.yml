@@ -1,0 +1,24 @@
+
+version: '3.1'
+
+services:
+
+  db:
+    image: postgres:16.1-alpine3.19
+    restart: always
+    environment:
+      POSTGRES_DB: students
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_USER: vladik
+      POSTGRES_SSL_MODE: disable
+    ports:
+        - "5432:5432"
+    network_mode: "host"
+
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "8080:8080"
+    network_mode: "host"
