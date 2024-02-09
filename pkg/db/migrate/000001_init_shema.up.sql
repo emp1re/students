@@ -1,25 +1,25 @@
 CREATE TABLE students (
                                         id SERIAL PRIMARY KEY,
-                                        student_id INT NOT NULL UNIQUE,
+                                        student_id BIGINT NOT NULL UNIQUE,
                                         first_name TEXT NOT NULL,
                                         last_name TEXT NOT NULL,
-                                        age BIGINT,
+                                        age SERIAL,
                                         email TEXT NOT NULL UNIQUE,
                                         gender TEXT,
                                         favourite_color TEXT,
-                                        student_address INT NOT NULL,
-                                        created_at timestamptz,
-                                        updated_at timestamptz,
+                                        student_address BIGINT NOT NULL,
+                                        created_at BIGINT NOT NULL DEFAULT 0,
+                                        updated_at BIGINT NOT NULL DEFAULT 0,
                                         deleted BOOLEAN DEFAULT FALSE
 );
 CREATE TABLE address (
-                                       address_id INT NOT NULL,
+                                       address_id BIGINT NOT NULL,
                                        street TEXT,
                                        city TEXT,
                                        planet TEXT,
                                        phone TEXT NOT NULL
 );
 CREATE TABLE index (
-                       index_id INT NOT NULL
+                       index_id BIGINT NOT NULL
 
 );
