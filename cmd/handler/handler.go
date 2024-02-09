@@ -10,8 +10,8 @@ import (
 )
 
 type SvcHandler interface {
-	CreateStudent(ctx context.Context, input models.InputStudent) (out models.OutStudent, err error)
-	GetStudents(ctx context.Context) (out []models.OutStudent, err error)
+	CreateStudent(ctx context.Context, input models.InputStudent) (out models.ResponseApiStudent, err error)
+	GetStudents(ctx context.Context) (resp []models.ResponseApiStudent, err error)
 	UpdateStudent(ctx context.Context, input models.InputUpdateStudent, id string) error
 	DeleteStudent(ctx context.Context, id string) error
 }

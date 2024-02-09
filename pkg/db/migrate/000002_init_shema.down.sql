@@ -1,4 +1,0 @@
-
-DROP TABLE IF EXISTS students;
-DROP TABLE IF EXISTS address;
-DROP TABLE IF EXISTS index;

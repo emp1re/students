@@ -1,5 +1,5 @@
 postgres:
-	docker run --rm --name postgres -e POSTGRES_USER=vladik -e POSTGRES_PASSWORD=123456  -p 5432:5432 -d postgres:16.1-alpine3.19
+	docker run --rm --name postgres -e POSTGRES_USER=vladik -e POSTGRES_PASSWORD=123456 -e POSTGRES_DB=students  -p 5432:5432 -d postgres:16.1-alpine3.19
 createdb:
 	docker exec -it postgres createdb --username=vladik --owner=vladik students
 dropdb:

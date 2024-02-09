@@ -15,8 +15,8 @@ import (
 )
 
 type Service interface {
-	CreateStudent(ctx context.Context, input models.InputStudent) (out models.OutStudent, err error)
-	GetStudents(ctx context.Context) (out []models.OutStudent, err error)
+	CreateStudent(ctx context.Context, input models.InputStudent) (out models.ResponseApiStudent, err error)
+	GetStudents(ctx context.Context) (resp []models.ResponseApiStudent, err error)
 	UpdateStudent(ctx context.Context, input models.InputUpdateStudent, id string) error
 	DeleteStudent(ctx context.Context, id string) error
 }
@@ -34,7 +34,7 @@ func NewService(ctx context.Context, log *zap.Logger, postg *pgx.Conn, q *db.Que
 		Conn:    postg,
 		db:      db.New(postg)}
 }
-func (r *Repository) CreateStudent(ctx context.Context, input models.InputStudent) (out models.OutStudent, err error) {
+func (r *Repository) CreateStudent(ctx context.Context, input models.InputStudent) (out models.ResponseApiStudent, err error) {
 
 	studentId, err := r.db.GetIndexes(context.Background())
 	if err != nil {
@@ -46,7 +46,7 @@ func (r *Repository) CreateStudent(ctx context.Context, input models.InputStuden
 		}
 	}
 
-	adrs := db.CreateAddressParams{
+	adrs := db.CreateStudentAddressParams{
 		AddressID: studentId,
 		Street:    pgtype.Text{String: input.Addresses.Street, Valid: true},
 		City:      pgtype.Text{String: input.Addresses.City, Valid: true},
@@ -54,7 +54,7 @@ func (r *Repository) CreateStudent(ctx context.Context, input models.InputStuden
 		Phone:     input.Addresses.Phone,
 	}
 
-	adr, err := r.db.CreateAddress(context.Background(), adrs)
+	adr, err := r.db.CreateStudentAddress(context.Background(), adrs)
 	if err != nil {
 		r.Logger.Error("CreateAddress", zap.Error(err))
 		return out, errors.WithStack(err)
@@ -64,13 +64,13 @@ func (r *Repository) CreateStudent(ctx context.Context, input models.InputStuden
 		StudentID:      studentId,
 		FirstName:      input.FirstName,
 		LastName:       input.LastName,
-		Age:            pgtype.Int8{Int64: input.Age, Valid: true},
+		Age:            pgtype.Int4{Int32: input.Age, Valid: true},
 		Email:          input.Email,
 		Gender:         pgtype.Text{String: input.Gender, Valid: true},
 		FavouriteColor: pgtype.Text{String: input.FavouriteColor, Valid: true},
 		StudentAddress: adr.AddressID,
-		CreatedAt:      pgtype.Timestamptz{Time: time.Now().UTC(), Valid: true},
-		UpdatedAt:      pgtype.Timestamptz{Time: time.Now().UTC(), Valid: true},
+		CreatedAt:      time.Now().Unix(),
+		UpdatedAt:      time.Now().Unix(),
 		Deleted:        pgtype.Bool{Bool: false, Valid: true},
 	}
 
@@ -81,7 +81,10 @@ func (r *Repository) CreateStudent(ctx context.Context, input models.InputStuden
 	}
 
 	impl := generated.ConverterImpl{}
-	var outStudent = impl.Convert(stdnt)
+	var outStudent = impl.ConvertFromDBStudent(stdnt)
+	var address = impl.ConvertAddress(adr)
+	ApiImpl := models.ImplementationConvertFromDbToApi{}
+	var response = ApiImpl.ConvertResponseApi(outStudent, address)
 
 	err = r.db.UpdateIndex(context.Background(), db.UpdateIndexParams{
 		IndexID:   studentId,
@@ -91,10 +94,11 @@ func (r *Repository) CreateStudent(ctx context.Context, input models.InputStuden
 		r.Logger.Error("UpdateIndex", zap.Error(err))
 		return out, errors.WithStack(err)
 	}
-	return outStudent, nil
+	return response, nil
 }
 
-func (r *Repository) GetStudents(ctx context.Context) (out []models.OutStudent, err error) {
+func (r *Repository) GetStudents(ctx context.Context) (resp []models.ResponseApiStudent, err error) {
+
 	stdnts, err := r.db.ListStudents(ctx, db.ListStudentsParams{
 		Limit:  10,
 		Offset: 0,
@@ -103,9 +107,19 @@ func (r *Repository) GetStudents(ctx context.Context) (out []models.OutStudent, 
 		r.Logger.Error("ListStudents", zap.Error(err))
 		return nil, errors.WithStack(err)
 	}
+	addresses, err := r.db.GetStudentAddresses(context.Background(), db.GetStudentAddressesParams{Limit: 10, Offset: 0})
+	if err != nil {
+		r.Logger.Error("GetStudentAddresses", zap.Error(err))
+		return nil, errors.WithStack(err)
+	}
+
 	impl := generated.ConverterImpl{}
-	var outStudents = impl.ConvertItems(stdnts)
-	return outStudents, nil
+	var outStudents = impl.ConvertFromDbStudents(stdnts)
+	var convertedAddresses = impl.ConvertAddressesItems(addresses)
+	ApiImpl := models.ImplementationConvertFromDbToApi{}
+	resp = ApiImpl.ConvertResponseApiWithItems(outStudents, convertedAddresses)
+
+	return resp, nil
 }
 func (r *Repository) UpdateStudent(ctx context.Context, input models.InputUpdateStudent, id string) error {
 	//fmt.Println(input)
@@ -118,7 +132,8 @@ func (r *Repository) UpdateStudent(ctx context.Context, input models.InputUpdate
 		ID:        int32(conv),
 		FirstName: input.FirstName,
 		LastName:  input.LastName,
-		Age:       pgtype.Int8{Int64: input.Age, Valid: true},
+		Age:       pgtype.Int4{Int32: input.Age, Valid: true},
+		UpdatedAt: time.Now().Unix(),
 	}
 	err = r.db.UpdateStudent(ctx, arg)
 	if err != nil {
@@ -130,7 +145,7 @@ func (r *Repository) UpdateStudent(ctx context.Context, input models.InputUpdate
 func (r *Repository) DeleteStudent(ctx context.Context, id string) error {
 	conv, err := strconv.ParseInt(id, 10, 32)
 	if err != nil {
-		r.Logger.Error("UpdateStudent", zap.Error(err))
+		r.Logger.Error("DeleteParseIntStudentID", zap.Error(err))
 		return errors.WithStack(err)
 	}
 	err = r.db.DeleteStudent(ctx, int32(conv))
