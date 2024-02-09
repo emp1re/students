@@ -10,22 +10,6 @@ import (
 
 type ConverterImpl struct{}
 
-func (c *ConverterImpl) Convert(source sqlc.Student) models.OutStudent {
-	var modelsOutStudent models.OutStudent
-	modelsOutStudent.ID = source.ID
-	modelsOutStudent.StudentID = source.StudentID
-	modelsOutStudent.FirstName = source.FirstName
-	modelsOutStudent.LastName = source.LastName
-	modelsOutStudent.Age = models.PgTypeToInt8(source.Age)
-	modelsOutStudent.Email = source.Email
-	modelsOutStudent.Gender = models.PgTypeToText(source.Gender)
-	modelsOutStudent.FavouriteColor = models.PgTypeToText(source.FavouriteColor)
-	modelsOutStudent.StudentAddress = source.StudentAddress
-	modelsOutStudent.CreatedAt = models.PgTypeTimestamptz(source.CreatedAt)
-	modelsOutStudent.UpdatedAt = models.PgTypeTimestamptz(source.UpdatedAt)
-	modelsOutStudent.Deleted = models.PgTypeToBool(source.Deleted)
-	return modelsOutStudent
-}
 func (c *ConverterImpl) ConvertAddress(source sqlc.Address) models.OutAddress {
 	var modelsOutAddress models.OutAddress
 	modelsOutAddress.AddressID = source.AddressID
@@ -35,13 +19,39 @@ func (c *ConverterImpl) ConvertAddress(source sqlc.Address) models.OutAddress {
 	modelsOutAddress.Phone = source.Phone
 	return modelsOutAddress
 }
-func (c *ConverterImpl) ConvertItems(source []sqlc.Student) []models.OutStudent {
-	var modelsOutStudentList []models.OutStudent
+func (c *ConverterImpl) ConvertAddressesItems(source []sqlc.Address) []models.OutAddress {
+	var modelsOutAddressList []models.OutAddress
 	if source != nil {
-		modelsOutStudentList = make([]models.OutStudent, len(source))
+		modelsOutAddressList = make([]models.OutAddress, len(source))
 		for i := 0; i < len(source); i++ {
-			modelsOutStudentList[i] = c.Convert(source[i])
+			modelsOutAddressList[i] = c.ConvertAddress(source[i])
 		}
 	}
-	return modelsOutStudentList
+	return modelsOutAddressList
+}
+func (c *ConverterImpl) ConvertFromDBStudent(source sqlc.Student) models.OutFromDbStudent {
+	var modelsOutFromDbStudent models.OutFromDbStudent
+	modelsOutFromDbStudent.ID = source.ID
+	modelsOutFromDbStudent.StudentID = source.StudentID
+	modelsOutFromDbStudent.FirstName = source.FirstName
+	modelsOutFromDbStudent.LastName = source.LastName
+	modelsOutFromDbStudent.Age = models.PgTypeToInt4(source.Age)
+	modelsOutFromDbStudent.Email = source.Email
+	modelsOutFromDbStudent.Gender = models.PgTypeToText(source.Gender)
+	modelsOutFromDbStudent.FavouriteColor = models.PgTypeToText(source.FavouriteColor)
+	modelsOutFromDbStudent.StudentAddress = source.StudentAddress
+	modelsOutFromDbStudent.CreatedAt = source.CreatedAt
+	modelsOutFromDbStudent.UpdatedAt = source.UpdatedAt
+	modelsOutFromDbStudent.Deleted = models.PgTypeToBool(source.Deleted)
+	return modelsOutFromDbStudent
+}
+func (c *ConverterImpl) ConvertFromDbStudents(source []sqlc.Student) []models.OutFromDbStudent {
+	var modelsOutFromDbStudentList []models.OutFromDbStudent
+	if source != nil {
+		modelsOutFromDbStudentList = make([]models.OutFromDbStudent, len(source))
+		for i := 0; i < len(source); i++ {
+			modelsOutFromDbStudentList[i] = c.ConvertFromDBStudent(source[i])
+		}
+	}
+	return modelsOutFromDbStudentList
 }

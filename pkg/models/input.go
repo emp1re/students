@@ -9,7 +9,7 @@ import (
 type InputStudent struct {
 	FirstName      string        `json:"first_name" validate:"required"`
 	LastName       string        `json:"last_name" validate:"required"`
-	Age            int64         `json:"age" validate:"gte=0,lte=130"`
+	Age            int32         `json:"age" validate:"gte=0,lte=130"`
 	Email          string        `json:"email" validate:"required,email"`
 	Gender         string        `json:"gender" validate:"oneof=male female prefer_not_to"`
 	FavouriteColor string        `json:"favouriteColor" validate:"iscolor"` // alias for 'hexcolor|rgb|rgba|hsl|hsla'
@@ -27,7 +27,7 @@ var validate *validator.Validate
 type InputUpdateStudent struct {
 	FirstName string `json:"first_name" validate:"required"`
 	LastName  string `json:"last_name" validate:"required"`
-	Age       int64  `json:"age" validate:"required"`
+	Age       int32  `json:"age" validate:"required"`
 	Email     string `json:"email" validate:"required"`
 }
 

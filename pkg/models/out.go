@@ -8,24 +8,21 @@ import (
 )
 
 // goverter:converter
-// goverter:extend PgTypeToInt8
+// goverter:extend PgTypeToInt4
 // goverter:extend PgTypeToText
 // goverter:extend PgTypeTimestamptz
 // goverter:extend PgTypeToBool
 type Converter interface {
-	ConvertItems(source []db.Student) []OutStudent
-	Convert(source db.Student) OutStudent
+	ConvertFromDbStudents(source []db.Student) []OutFromDbStudent
+	ConvertFromDBStudent(source db.Student) OutFromDbStudent
+
 	ConvertAddress(source db.Address) OutAddress
+	ConvertAddressesItems(source []db.Address) []OutAddress
 }
 
-func PgTypeToInt8(i pgtype.Int8) int64 {
-	val, err := i.Value()
+func PgTypeToInt4(i pgtype.Int4) int32 {
 
-	if err != nil {
-
-		return 0
-	}
-	return val.(int64)
+	return i.Int32
 }
 func PgTypeToBool(i pgtype.Bool) bool {
 	val, err := i.Value()
@@ -50,23 +47,23 @@ func PgTypeToText(i pgtype.Text) string {
 }
 
 type OutAddress struct {
-	AddressID int32  `json:"address_id"`
+	AddressID int64  `json:"address_id"`
 	Street    string `json:"street"`
 	City      string `json:"city"`
 	Planet    string `json:"planet"`
 	Phone     string `json:"phone"`
 }
-type OutStudent struct {
-	ID             int32     `json:"id"`
-	StudentID      int32     `json:"student_id"`
-	FirstName      string    `json:"first_name"`
-	LastName       string    `json:"last_name"`
-	Age            int64     `json:"age"`
-	Email          string    `json:"email"`
-	Gender         string    `json:"gender"`
-	FavouriteColor string    `json:"favourite_color"`
-	StudentAddress int32     `json:"student_address"`
-	CreatedAt      time.Time `json:"created_at"`
-	UpdatedAt      time.Time `json:"updated_at"`
-	Deleted        bool      `json:"deleted"`
+type OutFromDbStudent struct {
+	ID             int32  `json:"id"`
+	StudentID      int64  `json:"student_id"`
+	FirstName      string `json:"first_name"`
+	LastName       string `json:"last_name"`
+	Age            int32  `json:"age"`
+	Email          string `json:"email"`
+	Gender         string `json:"gender"`
+	FavouriteColor string `json:"favourite_color"`
+	StudentAddress int64  `json:"student_address"`
+	CreatedAt      int64  `json:"created_at"`
+	UpdatedAt      int64  `json:"updated_at"`
+	Deleted        bool   `json:"deleted"`
 }
